@@ -660,11 +660,15 @@ input[type="number"] {
                     </div>
 
                     <div class="flex justify-center items-center gap-3">
-                        <input type="text" inputmode="numeric" id="m5-d1" maxlength="1" value="7" oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
+                       <input type="text" inputmode="numeric" id="m5-d1" maxlength="1" value="7" 
+    oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value === '0') this.value = '';" 
+    class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
                         <input type="text" inputmode="numeric" id="m5-d2" maxlength="1" value="8" oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
                         <input type="text" inputmode="numeric" id="m5-d3" maxlength="1" value="9" oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
+					</div>	
+                    <div class="flex gap-2 flex-wrap justify-center my-2">
+                        <button onclick="pick3Random()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-amber-400"><i class="fa-solid fa-dice"></i> Ngẫu Nhiên</button>
                     </div>
-
                     <div class="text-center">
                         <button onclick="playPick3()" class="px-8 py-3 rounded-xl gold-button text-sm">
                             Mua Vé Pick 3 ($10) & Quay Số
@@ -1220,7 +1224,7 @@ input[type="number"] {
 
                     document.getElementById('dod-ingame-controls').classList.add('hidden');
                     document.getElementById('dod-start-btn').classList.remove('hidden');
-                    document.getElementById('dod-start-btn').innerText = 'Chơi Lượt Mới ($10)';
+                    document.getElementById('dod-start-btn').innerText = 'Chơi Lượt Mới ($50)';
                 } else {
                     document.getElementById('dod-status').className = 'text-center font-bold text-sm text-emerald-400';
                     document.getElementById('dod-status').innerText = `CẠCH! An toàn lượt ${state.dodChambersChecked}! Thưởng đã nhân đôi!`;
@@ -1734,7 +1738,7 @@ input[type="number"] {
                 box.classList.remove('hidden');
                 text.innerText = '';
 
-                let win1 = Math.floor(Math.random() * 10);
+                let win1 = Math.floor(Math.random() * 9) +1;
                 let win2 = Math.floor(Math.random() * 10);
                 let win3 = Math.floor(Math.random() * 10);
 
@@ -1784,7 +1788,33 @@ input[type="number"] {
                 }, 80);
             });
         }
+function pick3Random() {
+    // Tạo 3 chữ số ngẫu nhiên từ 0 đến 9
+    const digit1 = Math.floor(Math.random() * 10);
+    const digit2 = Math.floor(Math.random() * 10);
+    const digit3 = Math.floor(Math.random() * 10);
 
+    // Gán giá trị vào các ô input hoặc biến lưu trữ tương ứng trong game Pick 3 của bạn
+    // (Giả sử các ôinput nhập số của bạn có id hoặc class tương ứng, ví dụ: pick3_dig1, pick3_dig2, pick3_dig3)
+    const input1 = document.getElementById('m5-d1');
+    const input2 = document.getElementById('m5-d2');
+    const input3 = document.getElementById('m5-d3');
+
+    if (input1 && input2 && input3) {
+        input1.value = digit1;
+        input2.value = digit2;
+        input3.value = digit3;
+    } else {
+        // Nếu game của bạn dùng mảng lưu trữ hoặc các phần tử khác, bạn cập nhật lại biến tương ứng ở đây
+        // Ví dụ: window.currentPick3Selection = [digit1, digit2, digit3];
+        console.log("Đã quay số ngẫu nhiên:", digit1, digit2, digit3);
+    }
+
+    // Hiệu ứng âm thanh hoặc thông báo nhỏ nếu muốn
+    if (typeof playSound === 'function') {
+        playSound('click');
+    }
+}
         // ================= MODE 6: PAIR MATCH SCRATCH CARD =================
         const mode6SymbolConfig = [
             { symbol: '👎', weight: 40, prize: 0 },
