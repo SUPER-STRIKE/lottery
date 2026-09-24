@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeLotto Vietnam - Sòng Bài & Vé Số Thượng Lưu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-button {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .gold-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .gold-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Pulsing Glow Effect */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.8); }
+        }
+
+        .glow-pulse {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Shake animation for scratch slots */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-3px) rotate(-1deg); }
+            40%, 80% { transform: translateX(3px) rotate(1deg); }
+        }
+
+        .shake-fx {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        /* Scratch Card Canvas styling */
+        .scratch-canvas {
+            cursor: pointer;
+            touch-action: none;
+            border-radius: 0.75rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Background Scratch Particle Overlay Canvas -->
+    <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Top Header / Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showView('shop')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-black font-extrabold text-xl shadow-lg">
+                    <i class="fa-solid fa-gem"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider gold-gradient-text">LUXELOTTO</h1>
+                    <p class="text-[10px] text-amber-400 font-semibold tracking-widest uppercase -mt-1">VIETNAM VIP</p>
+                </div>
+            </div>
+
+            <!-- Stats & Player Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Total Balance -->
+                <div class="bg-slate-900/90 border border-amber-500/30 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-wallet text-amber-400 text-sm"></i>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Số Dư</div>
+                        <div id="balanceDisplay" class="text-emerald-400 font-bold text-sm sm:text-base">$1,000</div>
+                    </div>
+                </div>
+
+                <!-- Win Counter -->
+                <div class="hidden sm:flex bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-1.5 items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Tổng Thắng</div>
+                        <div id="winTotalDisplay" class="text-amber-300 font-bold text-sm">$0</div>
+                    </div>
+                </div>
+
+                <!-- Audio Toggle -->
+                <button id="audioBtn" onclick="toggleAudio()" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+
+                <!-- Reset Money Button -->
+                <button onclick="confirmResetBalance()" title="Nạp Lại Tiền" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
+
+        <!-- Back to Shop Button (Hidden on Shop page) -->
+        <div id="backToShopContainer" class="hidden mb-6">
+            <button onclick="showView('shop')" class="inline-flex items-center gap-2 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-amber-400 px-4 py-2 rounded-xl text-sm font-semibold transition">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại Cửa Hàng
+            </button>
+        </div>
+
+        <!-- ================= VIEW 0: SHOP / GAME SELECTOR ================= -->
+        <div id="view-shop" class="space-y-6">
+            <!-- Hero Banner -->
+            <div class="glass-card rounded-2xl p-6 md:p-8 border border-amber-500/20 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-amber-400 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div class="max-w-xl space-y-3">
+                    <span class="inline-block bg-amber-500/10 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30 uppercase tracking-widest">Sòng Bài Vé Số Đẳng Cấp</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold leading-tight">Thử Vận May - Rinh Tỷ Phú <br><span class="gold-gradient-text">Với 7 Thể Loại Vé Số & Vé Cào</span></h2>
+                    <p class="text-slate-400 text-sm">Trải nghiệm cảm giác cào xé chân thực với hiệu ứng mụi bay sinh động, âm thanh chân thực và tỷ lệ thưởng cực khủng!</p>
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                <!-- Mode 1 Card -->
+                <div onclick="showView('mode1')" class="glass-card rounded-2xl p-5 hover:border-amber-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-bowling-ball"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-blue-400 font-bold uppercase tracking-wider">Xổ Số Truyền Thống</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Vé Số Max 6/49</h3>
+                            <p class="text-slate-400 text-xs mt-1">Chọn 6 số trong 49 số. Jackpot lên tới $50,000!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$10</strong></span>
+                        <span class="text-blue-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 2 Card -->
+                <div onclick="showView('mode2')" class="glass-card rounded-2xl p-5 hover:border-red-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-red-400 font-bold uppercase tracking-wider">Siêu Jackpot VIP</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Powerball VIP 5+1</h3>
+                            <p class="text-slate-400 text-xs mt-1">Chọn 5 số chính (1-69) + 1 số Powerball (1-26). Trúng $500,000!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$20</strong></span>
+                        <span class="text-red-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 3 Card -->
+                <div onclick="showView('mode3')" class="glass-card rounded-2xl p-5 hover:border-purple-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-purple-400 font-bold uppercase tracking-wider">Thắng Nhanh 100x</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Bạch Thủ Đề (00-99)</h3>
+                            <p class="text-slate-400 text-xs mt-1">Chỉ chọn 1 số may mắn duy nhất từ 00 tới 99. Thắng gấp 100 lần!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$5</strong></span>
+                        <span class="text-purple-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 4 Card -->
+                <div onclick="showView('mode4')" class="glass-card rounded-2xl p-5 hover:border-emerald-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Lương Trọn Đời</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Daily Grand 5+1</h3>
+                            <p class="text-slate-400 text-xs mt-1">Nhận $1,000/ngày trọn đời (cộng $10 mỗi 10 giây) hoặc $250,000 tiền mặt!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$15</strong></span>
+                        <span class="text-emerald-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 5 Card -->
+                <div onclick="showView('mode5')" class="glass-card rounded-2xl p-5 hover:border-amber-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-dice-three"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">Xổ Số 3 Số</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Xổ Số Pick 3 (100-999)</h3>
+                            <p class="text-slate-400 text-xs mt-1">Chọn số 3 chữ số. Đặt Thẳng (x500) hoặc Bao Lô / Đảo (x80)!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$10</strong></span>
+                        <span class="text-amber-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 6 Card -->
+                <div onclick="showView('mode6')" class="glass-card rounded-2xl p-5 hover:border-pink-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/30 text-pink-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-hand-sparkles"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-pink-400 font-bold uppercase tracking-wider">Vé Cào Tương Tác</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Vé Cào Cặp Đôi (Symbol Scratch)</h3>
+                            <p class="text-slate-400 text-xs mt-1">Cào 6 ô bạc metallic. Tìm 3 biểu tượng giống nhau để thắng tới $2,500!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$10</strong></span>
+                        <span class="text-pink-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Mode 7 Card -->
+                <div onclick="showView('mode7')" class="glass-card rounded-2xl p-5 hover:border-cyan-500/50 cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between group sm:col-span-2 lg:col-span-1">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
+                            <i class="fa-solid fa-diamond"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-cyan-400 font-bold uppercase tracking-wider">Vé Cào Lưới 3x3 VIP</span>
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Vé Cào Diamond 7s VIP</h3>
+                            <p class="text-slate-400 text-xs mt-1">Lưới 9 ô cào. Tìm số 7️⃣ ($50), Kim Cương 💎 ($200) hoặc trúng hàng thắng gấp đôi!</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$25</strong></span>
+                        <span class="text-cyan-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= VIEW 1: MAX 6/49 ================= -->
+        <div id="view-mode1" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-700">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black gold-gradient-text">Vé Số Max 6/49</h2>
+                        <p class="text-xs text-slate-400">Chọn 6 số may mắn từ 01 tới 49. Mua vé giá $10</p>
+                    </div>
+                    <button onclick="autoPick649()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-400 text-xs px-4 py-2 rounded-xl font-bold transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Chọn Nhanh Tự Động
+                    </button>
+                </div>
+
+                <!-- Number Grid Selection -->
+                <div class="mt-6">
+                    <p class="text-xs font-semibold text-slate-300 mb-3">Đã chọn: <span id="m1-count" class="text-amber-400 font-bold">0</span>/6 số</p>
+                    <div id="m1-grid" class="grid grid-cols-7 sm:grid-cols-10 gap-2">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- Controls & Action Button -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-800">
+                    <div class="text-xs text-slate-400">
+                        Vé đã chọn: <span id="m1-selected-list" class="font-bold text-white">Chưa chọn</span>
+                    </div>
+                    <button id="m1-buy-btn" onclick="playMax649()" disabled class="w-full sm:w-auto px-8 py-3 rounded-xl gold-button text-sm opacity-50 cursor-not-allowed">
+                        Mua Vé ($10) & Quay Số
+                    </button>
+                </div>
+            </div>
+
+            <!-- Drawing Canvas / Result Animation Box -->
+            <div id="m1-draw-box" class="hidden glass-card rounded-2xl p-6 border border-amber-500/30 space-y-4 text-center">
+                <h3 class="text-lg font-bold text-slate-200 uppercase tracking-widest">Đang Lồng Quay Số...</h3>
+                <div id="m1-draw-balls" class="flex justify-center items-center gap-2 sm:gap-4 my-6 flex-wrap">
+                    <!-- Balls inserted dynamically -->
+                </div>
+                <div id="m1-result-msg" class="text-base font-bold"></div>
+            </div>
+
+            <!-- Payout Structure Table -->
+            <div class="glass-card rounded-2xl p-5 border border-slate-800">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Cơ Cấu Giải Thưởng Max 6/49</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">Trúng 6 số</span><strong class="text-amber-400">$50,000</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">Trúng 5 số</span><strong class="text-amber-400">$2,000</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">Trúng 4 số</span><strong class="text-amber-400">$100</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">Trúng 3 số</span><strong class="text-amber-400">$10</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1"><span class="text-slate-400 block">Trúng 2 số</span><strong class="text-amber-400">$2</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 2: POWERBALL VIP ================= -->
+        <div id="view-mode2" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-700">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-red-500">Powerball VIP 5+1</h2>
+                        <p class="text-xs text-slate-400">Chọn 5 số trắng (1-69) & 1 số Powerball Đỏ (1-26). Mua vé $20</p>
+                    </div>
+                    <button onclick="autoPickPowerball()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-red-400 text-xs px-4 py-2 rounded-xl font-bold transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Chọn Nhanh Powerball
+                    </button>
+                </div>
+
+                <!-- White Balls Selection -->
+                <div class="mt-6">
+                    <p class="text-xs font-semibold text-slate-300 mb-3">1. Chọn 5 số chính: <span id="m2-white-count" class="text-amber-400 font-bold">0</span>/5</p>
+                    <div id="m2-white-grid" class="grid grid-cols-7 sm:grid-cols-10 gap-2 max-h-48 overflow-y-auto p-1">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- Red Powerball Selection -->
+                <div class="mt-6">
+                    <p class="text-xs font-semibold text-red-400 mb-3">2. Chọn 1 số Powerball Đỏ: <span id="m2-red-count" class="text-red-400 font-bold">0</span>/1</p>
+                    <div id="m2-red-grid" class="grid grid-cols-7 sm:grid-cols-10 gap-2 max-h-36 overflow-y-auto p-1">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-800">
+                    <div class="text-xs text-slate-400">
+                        Vé Powerball: <span id="m2-selected-list" class="font-bold text-white">Chưa hoàn tất</span>
+                    </div>
+                    <button id="m2-buy-btn" onclick="playPowerball()" disabled class="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 font-bold text-white text-sm opacity-50 cursor-not-allowed shadow-lg">
+                        Quay Số Powerball VIP ($20)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Drawing Result Box -->
+            <div id="m2-draw-box" class="hidden glass-card rounded-2xl p-6 border border-red-500/40 text-center space-y-4">
+                <h3 class="text-lg font-bold text-red-400 uppercase tracking-widest">Đang Quay Số Powerball VIP...</h3>
+                <div id="m2-draw-balls" class="flex justify-center items-center gap-2 sm:gap-4 my-6 flex-wrap"></div>
+                <div id="m2-result-msg" class="text-base font-bold"></div>
+            </div>
+
+            <!-- Payout Structure Table -->
+            <div class="glass-card rounded-2xl p-5 border border-slate-800">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Bảng Thưởng Powerball VIP</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">5 Số + Powerball</span><strong class="text-red-400">$500,000</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">5 Số chính</span><strong class="text-amber-400">$10,000</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">4 Số + Powerball</span><strong class="text-amber-400">$500</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">3 Số + Powerball</span><strong class="text-amber-400">$50</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">2 Số + Powerball</span><strong class="text-amber-400">$10</strong></div>
+                    <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800"><span class="text-slate-400 block">Chỉ Powerball</span><strong class="text-amber-400">$4</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 3: BACH THU DE ================= -->
+        <div id="view-mode3" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-700 max-w-2xl mx-auto">
+                <div class="text-center border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-black text-purple-400">Bạch Thủ Đề (00 - 99)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Chọn duy nhất 1 số hai chữ số. Trúng nhận thưởng gấp 100 lần!</p>
+                </div>
+
+                <div class="mt-6 flex flex-col items-center gap-4">
+                    <div class="w-full max-w-xs">
+                        <label class="block text-xs font-semibold text-slate-400 mb-2 text-center">Nhập hoặc chọn số (00 - 99):</label>
+                        <input type="number" id="m3-input" min="0" max="99" placeholder="00" class="w-full text-center text-4xl font-extrabold bg-slate-900 border-2 border-purple-500/50 focus:border-purple-400 rounded-2xl py-3 text-purple-300 outline-none transition">
+                    </div>
+
+                    <div class="flex gap-2 flex-wrap justify-center my-2">
+                        <button onclick="setMode3Quick(77)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-purple-300">77</button>
+                        <button onclick="setMode3Quick(88)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-purple-300">88</button>
+                        <button onclick="setMode3Quick(99)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-purple-300">99</button>
+                        <button onclick="setMode3Quick(Math.floor(Math.random()*100))" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-amber-400"><i class="fa-solid fa-dice"></i> Ngẫu Nhiên</button>
+                    </div>
+
+                    <button onclick="playMode3()" class="w-full max-w-xs py-3 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white text-sm shadow-lg transition">
+                        Đặt Vé Bạch Thủ ($5)
+                    </button>
+                </div>
+
+                <!-- Results Box -->
+                <div id="m3-result-box" class="hidden mt-6 pt-6 border-t border-slate-800 text-center space-y-3">
+                    <div class="text-xs text-slate-400">Kết quả Lồng Quay Bạch Thủ:</div>
+                    <div id="m3-anim-num" class="text-6xl font-black text-amber-400 tracking-wider">00</div>
+                    <div id="m3-result-text" class="text-base font-bold"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 4: DAILY GRAND ================= -->
+        <div id="view-mode4" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-700">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-emerald-400">Daily Grand - Lương Trọn Đời</h2>
+                        <p class="text-xs text-slate-400">Chọn 5 số chính (1-49) + 1 Grand Ball (1-7). Mua vé $15</p>
+                    </div>
+                    <button onclick="autoPickDailyGrand()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-emerald-400 text-xs px-4 py-2 rounded-xl font-bold transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Chọn Nhanh Daily Grand
+                    </button>
+                </div>
+
+                <!-- Main Numbers -->
+                <div class="mt-6">
+                    <p class="text-xs font-semibold text-slate-300 mb-3">1. Chọn 5 số chính (1-49): <span id="m4-main-count" class="text-amber-400 font-bold">0</span>/5</p>
+                    <div id="m4-main-grid" class="grid grid-cols-7 sm:grid-cols-10 gap-2 max-h-48 overflow-y-auto p-1"></div>
+                </div>
+
+                <!-- Grand Ball -->
+                <div class="mt-6">
+                    <p class="text-xs font-semibold text-emerald-400 mb-3">2. Chọn 1 Grand Ball (1-7): <span id="m4-grand-count" class="text-emerald-400 font-bold">0</span>/1</p>
+                    <div id="m4-grand-grid" class="grid grid-cols-7 gap-2 p-1"></div>
+                </div>
+
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-800">
+                    <div class="text-xs text-slate-400">Vé đã chọn: <span id="m4-selected-list" class="font-bold text-white">Chưa hoàn tất</span></div>
+                    <button id="m4-buy-btn" onclick="playDailyGrand()" disabled class="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-white text-sm opacity-50 cursor-not-allowed shadow-lg">
+                        Quay Số Daily Grand ($15)
+                    </button>
+                </div>
+            </div>
+
+            <div id="m4-draw-box" class="hidden glass-card rounded-2xl p-6 border border-emerald-500/40 text-center space-y-4">
+                <h3 class="text-lg font-bold text-emerald-400 uppercase tracking-widest">Đang Quay Daily Grand...</h3>
+                <div id="m4-draw-balls" class="flex justify-center items-center gap-2 sm:gap-4 my-6 flex-wrap"></div>
+                <div id="m4-result-msg" class="text-base font-bold"></div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 5: PICK 3 ================= -->
+        <div id="view-mode5" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-700 max-w-2xl mx-auto">
+                <div class="text-center border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-black text-amber-400">Xổ Số Pick 3 (100 - 999)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Chọn bộ 3 chữ số. Vé giá $10</p>
+                </div>
+
+                <div class="mt-6 space-y-5">
+                    <!-- Ticket Type Selector -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="m5-type-straight" onclick="setPick3Type('straight')" class="p-3 rounded-xl border-2 border-amber-500 bg-amber-500/10 text-amber-300 font-bold text-xs text-center">
+                            Vé Thẳng (Direct Match)<br><span class="text-[10px] text-slate-400 font-normal">Đúng thứ tự - Thưởng 500x</span>
+                        </button>
+                        <button id="m5-type-perm" onclick="setPick3Type('perm')" class="p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 font-bold text-xs text-center">
+                            Bao Lô/Đảo (Permutation)<br><span class="text-[10px] text-slate-400 font-normal">Sai thứ tự vẫn trúng - Thưởng 80x</span>
+                        </button>
+                    </div>
+
+                    <!-- Input Digit Wheels -->
+                    <div class="flex justify-center items-center gap-3">
+                        <input type="number" id="m5-d1" min="0" max="9" value="7" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
+                        <input type="number" id="m5-d2" min="0" max="9" value="8" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
+                        <input type="number" id="m5-d3" min="0" max="9" value="9" class="w-16 h-20 text-center text-4xl font-extrabold bg-slate-900 border border-slate-700 rounded-xl text-amber-400 focus:border-amber-400 outline-none">
+                    </div>
+
+                    <div class="text-center">
+                        <button onclick="playPick3()" class="px-8 py-3 rounded-xl gold-button text-sm">
+                            Mua Vé Pick 3 ($10) & Quay Số
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Box -->
+                <div id="m5-result-box" class="hidden mt-6 pt-6 border-t border-slate-800 text-center space-y-3">
+                    <div class="text-xs text-slate-400">Kết quả Pick 3:</div>
+                    <div id="m5-anim-num" class="text-5xl font-black text-amber-400 tracking-widest">0 0 0</div>
+                    <div id="m5-result-text" class="text-base font-bold"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 6: SYMBOL SCRATCH CARD ================= -->
+        <div id="view-mode6" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-pink-500/30 max-w-2xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-slate-800 pb-4 gap-3">
+                    <div>
+                        <h2 class="text-2xl font-black text-pink-400">Vé Cào Cặp Đôi (Symbol Match)</h2>
+                        <p class="text-xs text-slate-400">Cào 6 ô bạc metallic. Tìm 3 biểu tượng giống nhau để thắng thưởng!</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Giá vé</span>
+                        <span class="text-amber-400 font-extrabold text-lg">$10</span>
+                    </div>
+                </div>
+
+                <!-- Scratch Card Area -->
+                <div class="mt-6 flex flex-col items-center">
+                    <div id="m6-card-container" class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-pink-950 p-6 rounded-2xl border-2 border-pink-500/40 shadow-2xl w-full max-w-md">
+                        <!-- Card Header -->
+                        <div class="text-center mb-4">
+                            <span class="text-xs font-black tracking-widest text-pink-300 uppercase">★ LUXURY SCRATCH CARD ★</span>
+                        </div>
+
+                        <!-- 6 Scratch Grid Spots -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <!-- Spot 1 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-0">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-0"></canvas>
+                            </div>
+                            <!-- Spot 2 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-1">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-1"></canvas>
+                            </div>
+                            <!-- Spot 3 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-2">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-2"></canvas>
+                            </div>
+                            <!-- Spot 4 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-3">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-3"></canvas>
+                            </div>
+                            <!-- Spot 5 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-4">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-4"></canvas>
+                            </div>
+                            <!-- Spot 6 -->
+                            <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800" id="m6-slot-5">
+                                <span class="m6-content text-3xl font-extrabold select-none">?</span>
+                                <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m6-canvas-5"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Controls -->
+                        <div class="mt-6 flex justify-between items-center gap-3">
+                            <button id="m6-scratch-all-btn" onclick="instantScratchAllMode6()" class="flex-1 py-2.5 bg-pink-600 hover:bg-pink-500 rounded-xl font-bold text-xs text-white shadow-md transition">
+                                <i class="fa-solid fa-bolt"></i> Cào Nhanh Tất Cả
+                            </button>
+                            <button id="m6-buy-btn" onclick="buyMode6Card()" class="flex-1 py-2.5 gold-button rounded-xl font-bold text-xs shadow-md">
+                                Mua Vé Mới ($10)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Banner -->
+                    <div id="m6-result-banner" class="hidden mt-4 text-center font-bold text-base"></div>
+                </div>
+
+                <!-- Payout Tiers -->
+                <div class="mt-6 pt-4 border-t border-slate-800">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Bảng Thưởng Biểu Tượng (Trúng 3 ô):</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                        <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">💰 💰 💰 = <strong>$2,500</strong></div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">👑 👑 👑 = <strong>$1,000</strong></div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">💎 💎 💎 = <strong>$500</strong></div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-800">7️⃣ 7️⃣ 7️⃣ = <strong>$200</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 7: DIAMOND 7S VIP SCRATCH ================= -->
+        <div id="view-mode7" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-cyan-500/30 max-w-2xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-slate-800 pb-4 gap-3">
+                    <div>
+                        <h2 class="text-2xl font-black text-cyan-400">Diamond 7s VIP Scratch</h2>
+                        <p class="text-xs text-slate-400">Lưới 3x3 VIP. Tìm số 7️⃣, 💎 Kim Cương hoặc bộ 3 hàng/cột để ăn tiền!</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Giá vé VIP</span>
+                        <span class="text-amber-400 font-extrabold text-lg">$25</span>
+                    </div>
+                </div>
+
+                <!-- Scratch Card Area -->
+                <div class="mt-6 flex flex-col items-center">
+                    <div id="m7-card-container" class="relative bg-gradient-to-br from-slate-950 via-cyan-950 to-slate-900 p-6 rounded-2xl border-2 border-cyan-500/40 shadow-2xl w-full max-w-md">
+                        <div class="text-center mb-4">
+                            <span class="text-xs font-black tracking-widest text-cyan-300 uppercase">💎 DIAMOND 7S JACKPOT CARD 💎</span>
+                        </div>
+
+                        <!-- 3x3 Scratch Grid -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <!-- Loop 9 slots -->
+                            <script>
+                                for(let i=0; i<9; i++){
+                                    document.write(`
+                                        <div class="relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex flex-col items-center justify-center border border-slate-800" id="m7-slot-${i}">
+                                            <span class="m7-content text-2xl font-extrabold select-none">?</span>
+                                            <canvas class="scratch-canvas absolute inset-0 w-full h-full" id="m7-canvas-${i}"></canvas>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+
+                        <!-- Card Footer Controls -->
+                        <div class="mt-6 flex justify-between items-center gap-3">
+                            <button id="m7-scratch-all-btn" onclick="instantScratchAllMode7()" class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-xs text-white shadow-md transition">
+                                <i class="fa-solid fa-bolt"></i> Cào Nhanh Lưới 3x3
+                            </button>
+                            <button id="m7-buy-btn" onclick="buyMode7Card()" class="flex-1 py-2.5 gold-button rounded-xl font-bold text-xs shadow-md">
+                                Mua Vé Mới VIP ($25)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Banner -->
+                    <div id="m7-result-banner" class="hidden mt-4 text-center font-bold text-base"></div>
+                </div>
+
+                <!-- Payout Table -->
+                <div class="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+                    <p>• Mỗi biểu tượng 7️⃣ lộ ra: <strong>+$50 tiền mặt</strong></p>
+                    <p>• Mỗi Kim Cương 💎 lộ ra: <strong>+$200 tiền mặt</strong></p>
+                    <p>• Trúng 3 ô giống nhau trên cùng 1 Hàng/Cột: <strong>Thưởng thêm +$500 Jackpot!</strong></p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= BANKRUPTCY MINI-GAME MODAL ================= -->
+    <div id="bankruptcyModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl p-6 border border-amber-500/40 max-w-md w-full text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-3xl flex items-center justify-center mx-auto">
+                <i class="fa-solid fa-heart-crack"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-white">Bạn Đã Hết Tiền ($0)!</h3>
+            <p class="text-xs text-slate-400">Chơi mini-game "Đập Gạch Cứu Cánh" để phá vỡ các khối gạch và nhận lại <strong class="text-amber-400">$50 vốn khởi nghiệp</strong> miễn phí!</p>
+            
+            <div class="relative w-full aspect-[4/3] bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+                <canvas id="brickCanvas" class="w-full h-full"></canvas>
+            </div>
+
+            <button id="startBrickBtn" onclick="startBrickGame()" class="w-full py-3 gold-button rounded-xl font-bold text-sm">
+                Bắt Đầu Đập Gạch Lấy $50
+            </button>
+        </div>
+    </div>
+
+    <!-- Processing Overlay Loader -->
+    <div id="purchasingLoader" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+        <div class="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-amber-300 font-bold text-sm tracking-wider uppercase">Đang Thanh Toán & In Vé...</p>
+    </div>
+
+    <script>
+        let state = {
+            balance: 1000,
+            winTotal: 0,
+            audioEnabled: true,
+            currentView: 'shop',
+            mode1Selected: [],
+            mode2WhiteSelected: [],
+            mode2RedSelected: null,
+            mode4MainSelected: [],
+            mode4GrandSelected: null,
+            mode5Type: 'straight',
+            mode6Values: [],
+            mode6Scratched: [false,false,false,false,false,false],
+            mode7Values: [],
+            mode7Scratched: Array(9).fill(false)
+        };
+
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.audioEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'pay') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'scratch') {
+                    // White noise burst for scratching
+                    const bufferSize = audioCtx.sampleRate * 0.05;
+                    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    const output = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const whiteNoise = audioCtx.createBufferSource();
+                    whiteNoise.buffer = buffer;
+                    const noiseGain = audioCtx.createGain();
+                    noiseGain.gain.setValueAtTime(0.08, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    whiteNoise.connect(noiseGain);
+                    noiseGain.connect(audioCtx.destination);
+                    whiteNoise.start(now);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const btn = document.getElementById('audioBtn');
+            btn.innerHTML = state.audioEnabled ? 
+                '<i class="fa-solid fa-volume-high text-sm"></i>' : 
+                '<i class="fa-solid fa-volume-xmark text-sm text-red-400"></i>';
+        }
+
+        const particleCanvas = document.getElementById('particleCanvas');
+        const pCtx = particleCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeParticleCanvas() {
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas();
+
+        function spawnScratchDust(x, y, count = 12) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 2,
+                    size: Math.random() * 4 + 2,
+                    color: Math.random() > 0.5 ? '#94a3b8' : '#e2e8f0',
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+
+        function updateAndDrawParticles() {
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                pCtx.fillStyle = p.color;
+                pCtx.globalAlpha = Math.max(0, p.alpha);
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                pCtx.fill();
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(updateAndDrawParticles);
+        }
+        requestAnimationFrame(updateAndDrawParticles);
+
+        function updateUI() {
+            document.getElementById('balanceDisplay').innerText = '$' + state.balance.toLocaleString();
+            document.getElementById('winTotalDisplay').innerText = '$' + state.winTotal.toLocaleString();
+            
+            // Check for bankruptcy
+            if (state.balance < 5 && state.currentView !== 'shop') {
+                setTimeout(showBankruptcyModal, 1000);
+            }
+        }
+
+        function showView(viewName) {
+            playSound('click');
+            state.currentView = viewName;
+            
+            // Hide all views
+            const views = ['shop', 'mode1', 'mode2', 'mode3', 'mode4', 'mode5', 'mode6', 'mode7'];
+            views.forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden');
+            });
+
+            // Show current view
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+
+            // Toggle Back button
+            const backBtn = document.getElementById('backToShopContainer');
+            if (viewName === 'shop') {
+                backBtn.classList.add('hidden');
+            } else {
+                backBtn.classList.remove('hidden');
+            }
+
+            // Init view specific setups
+            if (viewName === 'mode1') initMode1();
+            if (viewName === 'mode2') initMode2();
+            if (viewName === 'mode4') initMode4();
+            if (viewName === 'mode6') initMode6Card();
+            if (viewName === 'mode7') initMode7Card();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function processPurchase(cost, callback) {
+            if (state.balance < cost) {
+                alert('Số dư không đủ! Hãy nạp thêm hoặc thử vận may khi hết tiền.');
+                return;
+            }
+
+            const loader = document.getElementById('purchasingLoader');
+            loader.classList.remove('hidden');
+            playSound('pay');
+
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                state.balance -= cost;
+                updateUI();
+                callback();
+            }, 500);
+        }
+
+        function confirmResetBalance() {
+            if (confirm('Bạn muốn nạp lại số dư ban đầu ($1,000)?')) {
+                state.balance = 1000;
+                updateUI();
+            }
+        }
+
+        function initMode1() {
+            const grid = document.getElementById('m1-grid');
+            grid.innerHTML = '';
+            state.mode1Selected = [];
+            
+            for (let i = 1; i <= 49; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center hover:border-amber-400 transition m1-num-btn';
+                btn.innerText = i < 10 ? '0' + i : i;
+                btn.onclick = () => toggleMode1Num(i, btn);
+                grid.appendChild(btn);
+            }
+            updateMode1UI();
+        }
+
+        function toggleMode1Num(num, btn) {
+            playSound('click');
+            const idx = state.mode1Selected.indexOf(num);
+            if (idx > -1) {
+                state.mode1Selected.splice(idx, 1);
+                btn.classList.remove('bg-amber-500', 'text-black', 'border-amber-400');
+                btn.classList.add('bg-slate-900', 'text-slate-300');
+            } else {
+                if (state.mode1Selected.length >= 6) return;
+                state.mode1Selected.push(num);
+                btn.classList.add('bg-amber-500', 'text-black', 'border-amber-400');
+                btn.classList.remove('bg-slate-900', 'text-slate-300');
+            }
+            updateMode1UI();
+        }
+
+        function autoPick649() {
+            initMode1();
+            const btns = document.querySelectorAll('.m1-num-btn');
+            while (state.mode1Selected.length < 6) {
+                const r = Math.floor(Math.random() * 49) + 1;
+                if (!state.mode1Selected.includes(r)) {
+                    state.mode1Selected.push(r);
+                    btns[r - 1].classList.add('bg-amber-500', 'text-black', 'border-amber-400');
+                }
+            }
+            updateMode1UI();
+        }
+
+        function updateMode1UI() {
+            document.getElementById('m1-count').innerText = state.mode1Selected.length;
+            const sorted = [...state.mode1Selected].sort((a,b)=>a-b);
+            document.getElementById('m1-selected-list').innerText = sorted.length ? sorted.map(n => n < 10 ? '0'+n : n).join(', ') : 'Chưa chọn';
+            
+            const buyBtn = document.getElementById('m1-buy-btn');
+            if (state.mode1Selected.length === 6) {
+                buyBtn.disabled = false;
+                buyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                buyBtn.disabled = true;
+                buyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function playMax649() {
+            processPurchase(10, () => {
+                const drawBox = document.getElementById('m1-draw-box');
+                const ballsDiv = document.getElementById('m1-draw-balls');
+                const resultMsg = document.getElementById('m1-result-msg');
+                
+                drawBox.classList.remove('hidden');
+                ballsDiv.innerHTML = '';
+                resultMsg.innerText = '';
+
+                // Draw 6 random winning numbers
+                let winning = [];
+                while (winning.length < 6) {
+                    let r = Math.floor(Math.random() * 49) + 1;
+                    if (!winning.includes(r)) winning.push(r);
+                }
+
+                // Animate rolling balls
+                winning.forEach((num, idx) => {
+                    setTimeout(() => {
+                        playSound('click');
+                        const isMatched = state.mode1Selected.includes(num);
+                        const ball = document.createElement('div');
+                        ball.className = `w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm shadow-lg ${isMatched ? 'bg-amber-400 text-black border-2 border-white animate-bounce' : 'bg-slate-800 text-white border border-slate-600'}`;
+                        ball.innerText = num < 10 ? '0' + num : num;
+                        ballsDiv.appendChild(ball);
+
+                        if (idx === 5) {
+                            // Calculate prizes
+                            let matches = state.mode1Selected.filter(n => winning.includes(n)).length;
+                            let prize = 0;
+                            if (matches === 6) prize = 50000;
+                            else if (matches === 5) prize = 2000;
+                            else if (matches === 4) prize = 100;
+                            else if (matches === 3) prize = 10;
+                            else if (matches === 2) prize = 2;
+
+                            if (prize > 0) {
+                                playSound('win');
+                                state.balance += prize;
+                                state.winTotal += prize;
+                                updateUI();
+                                resultMsg.className = 'text-emerald-400 font-bold text-lg';
+                                resultMsg.innerText = `🎉 Chúc mừng! Trúng ${matches} số - Nhận $${prize.toLocaleString()}!`;
+                            } else {
+                                resultMsg.className = 'text-slate-400 font-semibold';
+                                resultMsg.innerText = `Rất tiếc! Chỉ trúng ${matches} số. Chúc may mắn lần sau!`;
+                            }
+                        }
+                    }, idx * 400);
+                });
+            });
+        }
+
+        function initMode2() {
+            state.mode2WhiteSelected = [];
+            state.mode2RedSelected = null;
+
+            const wGrid = document.getElementById('m2-white-grid');
+            const rGrid = document.getElementById('m2-red-grid');
+            wGrid.innerHTML = '';
+            rGrid.innerHTML = '';
+
+            for (let i = 1; i <= 69; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center hover:border-amber-400 m2-w-btn';
+                btn.innerText = i < 10 ? '0' + i : i;
+                btn.onclick = () => {
+                    const idx = state.mode2WhiteSelected.indexOf(i);
+                    if (idx > -1) {
+                        state.mode2WhiteSelected.splice(idx, 1);
+                        btn.classList.remove('bg-amber-400', 'text-black');
+                    } else if (state.mode2WhiteSelected.length < 5) {
+                        state.mode2WhiteSelected.push(i);
+                        btn.classList.add('bg-amber-400', 'text-black');
+                    }
+                    updateMode2UI();
+                };
+                wGrid.appendChild(btn);
+            }
+
+            for (let i = 1; i <= 26; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 text-red-400 font-bold text-xs flex items-center justify-center hover:border-red-500 m2-r-btn';
+                btn.innerText = i < 10 ? '0' + i : i;
+                btn.onclick = () => {
+                    document.querySelectorAll('.m2-r-btn').forEach(b => b.classList.remove('bg-red-600', 'text-white'));
+                    state.mode2RedSelected = i;
+                    btn.classList.add('bg-red-600', 'text-white');
+                    updateMode2UI();
+                };
+                rGrid.appendChild(btn);
+            }
+            updateMode2UI();
+        }
+
+        function autoPickPowerball() {
+            initMode2();
+            const wBtns = document.querySelectorAll('.m2-w-btn');
+            const rBtns = document.querySelectorAll('.m2-r-btn');
+
+            while (state.mode2WhiteSelected.length < 5) {
+                let r = Math.floor(Math.random() * 69) + 1;
+                if (!state.mode2WhiteSelected.includes(r)) {
+                    state.mode2WhiteSelected.push(r);
+                    wBtns[r - 1].classList.add('bg-amber-400', 'text-black');
+                }
+            }
+
+            let redR = Math.floor(Math.random() * 26) + 1;
+            state.mode2RedSelected = redR;
+            rBtns[redR - 1].classList.add('bg-red-600', 'text-white');
+
+            updateMode2UI();
+        }
+
+        function updateMode2UI() {
+            document.getElementById('m2-white-count').innerText = state.mode2WhiteSelected.length;
+            document.getElementById('m2-red-count').innerText = state.mode2RedSelected ? '1' : '0';
+
+            const buyBtn = document.getElementById('m2-buy-btn');
+            if (state.mode2WhiteSelected.length === 5 && state.mode2RedSelected) {
+                buyBtn.disabled = false;
+                buyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                buyBtn.disabled = true;
+                buyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function playPowerball() {
+            processPurchase(20, () => {
+                const drawBox = document.getElementById('m2-draw-box');
+                const ballsDiv = document.getElementById('m2-draw-balls');
+                const resultMsg = document.getElementById('m2-result-msg');
+
+                drawBox.classList.remove('hidden');
+                ballsDiv.innerHTML = '';
+                resultMsg.innerText = '';
+
+                let winWhite = [];
+                while (winWhite.length < 5) {
+                    let r = Math.floor(Math.random() * 69) + 1;
+                    if (!winWhite.includes(r)) winWhite.push(r);
+                }
+                let winRed = Math.floor(Math.random() * 26) + 1;
+
+                // Animate White Balls
+                winWhite.forEach((num, idx) => {
+                    setTimeout(() => {
+                        playSound('click');
+                        const matched = state.mode2WhiteSelected.includes(num);
+                        const ball = document.createElement('div');
+                        ball.className = `w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm ${matched ? 'bg-amber-400 text-black border-2 border-white' : 'bg-slate-800 text-white'}`;
+                        ball.innerText = num < 10 ? '0' + num : num;
+                        ballsDiv.appendChild(ball);
+                    }, idx * 400);
+                });
+
+                // Animate Powerball Red
+                setTimeout(() => {
+                    playSound('click');
+                    const redMatched = state.mode2RedSelected === winRed;
+                    const ball = document.createElement('div');
+                    ball.className = `w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm ${redMatched ? 'bg-red-500 text-white border-2 border-amber-300 animate-bounce' : 'bg-red-900 text-white'}`;
+                    ball.innerText = winRed < 10 ? '0' + winRed : winRed;
+                    ballsDiv.appendChild(ball);
+
+                    // Calc rewards
+                    let whiteMatches = state.mode2WhiteSelected.filter(n => winWhite.includes(n)).length;
+                    let prize = 0;
+
+                    if (whiteMatches === 5 && redMatched) prize = 500000;
+                    else if (whiteMatches === 5) prize = 10000;
+                    else if (whiteMatches === 4 && redMatched) prize = 500;
+                    else if (whiteMatches === 3 && redMatched) prize = 50;
+                    else if (whiteMatches === 2 && redMatched) prize = 10;
+                    else if (redMatched) prize = 4;
+
+                    if (prize > 0) {
+                        playSound('win');
+                        state.balance += prize;
+                        state.winTotal += prize;
+                        updateUI();
+                        resultMsg.className = 'text-red-400 font-bold text-lg';
+                        resultMsg.innerText = `🎉 SIÊU THƯỞNG! Bạn trúng $${prize.toLocaleString()}!`;
+                    } else {
+                        resultMsg.className = 'text-slate-400 font-semibold';
+                        resultMsg.innerText = 'Chưa may mắn lần này. Thử lại ngay!';
+                    }
+                }, 2200);
+            });
+        }
+
+        function setMode3Quick(val) {
+            document.getElementById('m3-input').value = val < 10 ? '0' + val : val;
+        }
+
+        function playMode3() {
+            const input = document.getElementById('m3-input');
+            let val = parseInt(input.value);
+            if (isNaN(val) || val < 0 || val > 99) {
+                alert('Vui lòng chọn số hợp lệ từ 00 tới 99!');
+                return;
+            }
+
+            processPurchase(5, () => {
+                const box = document.getElementById('m3-result-box');
+                const anim = document.getElementById('m3-anim-num');
+                const text = document.getElementById('m3-result-text');
+
+                box.classList.remove('hidden');
+                text.innerText = '';
+
+                let winNum = Math.floor(Math.random() * 100);
+                let count = 0;
+                let interval = setInterval(() => {
+                    playSound('click');
+                    let r = Math.floor(Math.random() * 100);
+                    anim.innerText = r < 10 ? '0' + r : r;
+                    count++;
+                    if (count > 15) {
+                        clearInterval(interval);
+                        anim.innerText = winNum < 10 ? '0' + winNum : winNum;
+
+                        if (val === winNum) {
+                            playSound('win');
+                            let prize = 5 * 100; // $500
+                            state.balance += prize;
+                            state.winTotal += prize;
+                            updateUI();
+                            text.className = 'text-purple-400 font-extrabold text-lg';
+                            text.innerText = `🎉 XUẤT SẮC! Bạch Thủ Trúng $${prize}!`;
+                        } else {
+                            text.className = 'text-slate-400 font-semibold';
+                            text.innerText = `Tiếc quá! Kết quả ra ${winNum < 10 ? '0'+winNum : winNum}.`;
+                        }
+                    }
+                }, 80);
+            });
+        }
+
+        function initMode4() {
+            state.mode4MainSelected = [];
+            state.mode4GrandSelected = null;
+
+            const mGrid = document.getElementById('m4-main-grid');
+            const gGrid = document.getElementById('m4-grand-grid');
+            mGrid.innerHTML = '';
+            gGrid.innerHTML = '';
+
+            for (let i = 1; i <= 49; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center hover:border-emerald-400 m4-m-btn';
+                btn.innerText = i < 10 ? '0' + i : i;
+                btn.onclick = () => {
+                    const idx = state.mode4MainSelected.indexOf(i);
+                    if (idx > -1) {
+                        state.mode4MainSelected.splice(idx, 1);
+                        btn.classList.remove('bg-emerald-500', 'text-black');
+                    } else if (state.mode4MainSelected.length < 5) {
+                        state.mode4MainSelected.push(i);
+                        btn.classList.add('bg-emerald-500', 'text-black');
+                    }
+                    updateMode4UI();
+                };
+                mGrid.appendChild(btn);
+            }
+
+            for (let i = 1; i <= 7; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs flex items-center justify-center hover:border-emerald-400 m4-g-btn';
+                btn.innerText = i;
+                btn.onclick = () => {
+                    document.querySelectorAll('.m4-g-btn').forEach(b => b.classList.remove('bg-emerald-600', 'text-white'));
+                    state.mode4GrandSelected = i;
+                    btn.classList.add('bg-emerald-600', 'text-white');
+                    updateMode4UI();
+                };
+                gGrid.appendChild(btn);
+            }
+            updateMode4UI();
+        }
+
+        function autoPickDailyGrand() {
+            initMode4();
+            const mBtns = document.querySelectorAll('.m4-m-btn');
+            const gBtns = document.querySelectorAll('.m4-g-btn');
+
+            while (state.mode4MainSelected.length < 5) {
+                let r = Math.floor(Math.random() * 49) + 1;
+                if (!state.mode4MainSelected.includes(r)) {
+                    state.mode4MainSelected.push(r);
+                    mBtns[r - 1].classList.add('bg-emerald-500', 'text-black');
+                }
+            }
+
+            let gR = Math.floor(Math.random() * 7) + 1;
+            state.mode4GrandSelected = gR;
+            gBtns[gR - 1].classList.add('bg-emerald-600', 'text-white');
+
+            updateMode4UI();
+        }
+
+        function updateMode4UI() {
+            document.getElementById('m4-main-count').innerText = state.mode4MainSelected.length;
+            document.getElementById('m4-grand-count').innerText = state.mode4GrandSelected ? '1' : '0';
+
+            const buyBtn = document.getElementById('m4-buy-btn');
+            if (state.mode4MainSelected.length === 5 && state.mode4GrandSelected) {
+                buyBtn.disabled = false;
+                buyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                buyBtn.disabled = true;
+                buyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function playDailyGrand() {
+            processPurchase(15, () => {
+                const drawBox = document.getElementById('m4-draw-box');
+                const ballsDiv = document.getElementById('m4-draw-balls');
+                const resultMsg = document.getElementById('m4-result-msg');
+
+                drawBox.classList.remove('hidden');
+                ballsDiv.innerHTML = '';
+                resultMsg.innerText = '';
+
+                let winMain = [];
+                while (winMain.length < 5) {
+                    let r = Math.floor(Math.random() * 49) + 1;
+                    if (!winMain.includes(r)) winMain.push(r);
+                }
+                let winGrand = Math.floor(Math.random() * 7) + 1;
+
+                winMain.forEach((num, idx) => {
+                    setTimeout(() => {
+                        playSound('click');
+                        const matched = state.mode4MainSelected.includes(num);
+                        const ball = document.createElement('div');
+                        ball.className = `w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm ${matched ? 'bg-emerald-400 text-black border-2 border-white' : 'bg-slate-800 text-white'}`;
+                        ball.innerText = num < 10 ? '0' + num : num;
+                        ballsDiv.appendChild(ball);
+                    }, idx * 400);
+                });
+
+                setTimeout(() => {
+                    playSound('click');
+                    const gMatched = state.mode4GrandSelected === winGrand;
+                    const ball = document.createElement('div');
+                    ball.className = `w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm ${gMatched ? 'bg-emerald-500 text-white border-2 border-amber-300 animate-bounce' : 'bg-emerald-900 text-white'}`;
+                    ball.innerText = winGrand;
+                    ballsDiv.appendChild(ball);
+
+                    let mMatches = state.mode4MainSelected.filter(n => winMain.includes(n)).length;
+                    let prize = 0;
+
+                    if (mMatches === 5 && gMatched) prize = 250000;
+                    else if (mMatches === 5) prize = 25000;
+                    else if (mMatches === 4) prize = 500;
+                    else if (mMatches === 3) prize = 50;
+
+                    if (prize > 0) {
+                        playSound('win');
+                        state.balance += prize;
+                        state.winTotal += prize;
+                        updateUI();
+                        resultMsg.className = 'text-emerald-400 font-bold text-lg';
+                        resultMsg.innerText = `🎉 CHÚC MỪNG! Bạn nhận $${prize.toLocaleString()}!`;
+                    } else {
+                        resultMsg.className = 'text-slate-400 font-semibold';
+                        resultMsg.innerText = 'Chúc bạn may mắn lần sau!';
+                    }
+                }, 2200);
+            });
+        }
+
+        function setPick3Type(type) {
+            state.mode5Type = type;
+            const btnS = document.getElementById('m5-type-straight');
+            const btnP = document.getElementById('m5-type-perm');
+
+            if (type === 'straight') {
+                btnS.className = 'p-3 rounded-xl border-2 border-amber-500 bg-amber-500/10 text-amber-300 font-bold text-xs text-center';
+                btnP.className = 'p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 font-bold text-xs text-center';
+            } else {
+                btnP.className = 'p-3 rounded-xl border-2 border-amber-500 bg-amber-500/10 text-amber-300 font-bold text-xs text-center';
+                btnS.className = 'p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 font-bold text-xs text-center';
+            }
+        }
+
+        function playPick3() {
+            const d1 = parseInt(document.getElementById('m5-d1').value) || 0;
+            const d2 = parseInt(document.getElementById('m5-d2').value) || 0;
+            const d3 = parseInt(document.getElementById('m5-d3').value) || 0;
+
+            processPurchase(10, () => {
+                const box = document.getElementById('m5-result-box');
+                const anim = document.getElementById('m5-anim-num');
+                const text = document.getElementById('m5-result-text');
+
+                box.classList.remove('hidden');
+                text.innerText = '';
+
+                let win1 = Math.floor(Math.random() * 10);
+                let win2 = Math.floor(Math.random() * 10);
+                let win3 = Math.floor(Math.random() * 10);
+
+                let count = 0;
+                let interval = setInterval(() => {
+                    playSound('click');
+                    anim.innerText = `${Math.floor(Math.random()*10)} ${Math.floor(Math.random()*10)} ${Math.floor(Math.random()*10)}`;
+                    count++;
+                    if (count > 15) {
+                        clearInterval(interval);
+                        anim.innerText = `${win1} ${win2} ${win3}`;
+
+                        let userChoice = [d1, d2, d3];
+                        let winChoice = [win1, win2, win3];
+
+                        if (state.mode5Type === 'straight') {
+                            if (d1 === win1 && d2 === win2 && d3 === win3) {
+                                playSound('win');
+                                let prize = 10 * 500; // $5000
+                                state.balance += prize;
+                                state.winTotal += prize;
+                                updateUI();
+                                text.className = 'text-amber-400 font-extrabold text-lg';
+                                text.innerText = `🎉 TRÚNG VÉ THẮNG THẲNG! Nhận $${prize.toLocaleString()}!`;
+                            } else {
+                                text.className = 'text-slate-400 font-semibold';
+                                text.innerText = 'Chưa trùng khớp đúng thứ tự. Thử lại!';
+                            }
+                        } else {
+                            // Permutation match logic
+                            let uSorted = [...userChoice].sort().join('');
+                            let wSorted = [...winChoice].sort().join('');
+
+                            if (uSorted === wSorted) {
+                                playSound('win');
+                                let prize = 10 * 80; // $800
+                                state.balance += prize;
+                                state.winTotal += prize;
+                                updateUI();
+                                text.className = 'text-amber-400 font-extrabold text-lg';
+                                text.innerText = `🎉 TRÚNG BAO LÔ ĐẢO! Nhận $${prize.toLocaleString()}!`;
+                            } else {
+                                text.className = 'text-slate-400 font-semibold';
+                                text.innerText = 'Chưa trùng khớp các chữ số. Thử lại!';
+                            }
+                        }
+                    }
+                }, 80);
+            });
+        }
+
+        const mode6Symbols = ['🍒', '🔔', '💎', '7️⃣', '👑', '💰', '🍀'];
+
+        function initMode6Card() {
+            state.mode6Scratched = [false,false,false,false,false,false];
+            document.getElementById('m6-result-banner').classList.add('hidden');
+
+            // Generate card values
+            state.mode6Values = [];
+            // Random chance to win 3 identical symbols
+            let isWinner = Math.random() < 0.4;
+            let winSym = mode6Symbols[Math.floor(Math.random() * mode6Symbols.length)];
+
+            if (isWinner) {
+                // Insert 3 matching symbols
+                state.mode6Values = [winSym, winSym, winSym];
+                while (state.mode6Values.length < 6) {
+                    let s = mode6Symbols[Math.floor(Math.random() * mode6Symbols.length)];
+                    state.mode6Values.push(s);
+                }
+                // Shuffle
+                state.mode6Values.sort(() => Math.random() - 0.5);
+            } else {
+                for (let i = 0; i < 6; i++) {
+                    state.mode6Values.push(mode6Symbols[Math.floor(Math.random() * mode6Symbols.length)]);
+                }
+            }
+
+            // Render slots & setup canvases
+            for (let i = 0; i < 6; i++) {
+                const slot = document.getElementById(`m6-slot-${i}`);
+                const contentSpan = slot.querySelector('.m6-content');
+                contentSpan.innerText = state.mode6Values[i];
+
+                const canvas = document.getElementById(`m6-canvas-${i}`);
+                setupScratchCanvas(canvas, () => revealMode6Slot(i));
+            }
+        }
+
+        function setupScratchCanvas(canvas, onScratchDone) {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width || 100;
+            canvas.height = rect.height || 100;
+
+            // Fill metallic silver foil
+            let grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#94a3b8');
+            grad.addColorStop(0.5, '#cbd5e1');
+            grad.addColorStop(1, '#64748b');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add foil text label
+            ctx.fillStyle = '#334155';
+            ctx.font = 'bold 12px "Plus Jakarta Sans"';
+            ctx.textAlign = 'center';
+            ctx.fillText('CÀO TẠI ĐÂY', canvas.width / 2, canvas.height / 2 + 4);
+
+            let isDragging = false;
+
+            function scratch(x, y) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                playSound('scratch');
+
+                // Get global screen position for particle explosion
+                const cRect = canvas.getBoundingClientRect();
+                spawnScratchDust(cRect.left + x, cRect.top + y, 4);
+
+                // Shake FX
+                canvas.parentElement.classList.add('shake-fx');
+                setTimeout(() => canvas.parentElement.classList.remove('shake-fx'), 300);
+
+                checkScratchPercent();
+            }
+
+            function checkScratchPercent() {
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let transparentPixels = 0;
+                for (let i = 3; i < imgData.data.length; i += 4) {
+                    if (imgData.data[i] === 0) transparentPixels++;
+                }
+                let percent = (transparentPixels / (imgData.data.length / 4)) * 100;
+                if (percent > 45) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    onScratchDone();
+                }
+            }
+
+            // Mouse Events
+            canvas.onmousedown = (e) => { isDragging = true; scratch(e.offsetX, e.offsetY); };
+            canvas.onmousemove = (e) => { if (isDragging) scratch(e.offsetX, e.offsetY); };
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Touch Events
+            canvas.ontouchstart = (e) => {
+                isDragging = true;
+                const t = e.touches[0];
+                const r = canvas.getBoundingClientRect();
+                scratch(t.clientX - r.left, t.clientY - r.top);
+            };
+            canvas.ontouchmove = (e) => {
+                if (!isDragging) return;
+                const t = e.touches[0];
+                const r = canvas.getBoundingClientRect();
+                scratch(t.clientX - r.left, t.clientY - r.top);
+            };
+            canvas.ontouchend = () => { isDragging = false; };
+        }
+
+        function revealMode6Slot(index) {
+            state.mode6Scratched[index] = true;
+            checkMode6Win();
+        }
+
+        function instantScratchAllMode6() {
+            for (let i = 0; i < 6; i++) {
+                const canvas = document.getElementById(`m6-canvas-${i}`);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const rect = canvas.getBoundingClientRect();
+                spawnScratchDust(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
+                state.mode6Scratched[i] = true;
+            }
+            playSound('scratch');
+            checkMode6Win();
+        }
+
+        function buyMode6Card() {
+            processPurchase(10, () => {
+                initMode6Card();
+            });
+        }
+
+        function checkMode6Win() {
+            if (state.mode6Scratched.filter(Boolean).length < 6) return;
+
+            const banner = document.getElementById('m6-result-banner');
+            banner.classList.remove('hidden');
+
+            // Count symbol frequencies
+            let counts = {};
+            state.mode6Values.forEach(s => counts[s] = (counts[s] || 0) + 1);
+
+            let winSymbol = Object.keys(counts).find(s => counts[s] >= 3);
+
+            if (winSymbol) {
+                let prize = 100;
+                if (winSymbol === '💰') prize = 2500;
+                else if (winSymbol === '👑') prize = 1000;
+                else if (winSymbol === '💎') prize = 500;
+                else if (winSymbol === '7️⃣') prize = 200;
+
+                playSound('win');
+                state.balance += prize;
+                state.winTotal += prize;
+                updateUI();
+
+                banner.className = 'mt-4 text-center font-extrabold text-lg text-pink-400 animate-pulse';
+                banner.innerText = `🎉 THẮNG LỚN! Trúng 3 biểu tượng ${winSymbol} - Nhận $${prize.toLocaleString()}!`;
+            } else {
+                banner.className = 'mt-4 text-center font-bold text-sm text-slate-400';
+                banner.innerText = 'Chưa trúng bộ 3 biểu tượng. Mua vé mới để cào tiếp!';
+            }
+        }
+
+        function initMode7Card() {
+            state.mode7Scratched = Array(9).fill(false);
+            document.getElementById('m7-result-banner').classList.add('hidden');
+
+            const possible = ['1', '2', '3', '4', '5', '6', '8', '9', '7️⃣', '💎'];
+            state.mode7Values = [];
+
+            for (let i = 0; i < 9; i++) {
+                let r = possible[Math.floor(Math.random() * possible.length)];
+                state.mode7Values.push(r);
+            }
+
+            for (let i = 0; i < 9; i++) {
+                const slot = document.getElementById(`m7-slot-${i}`);
+                const contentSpan = slot.querySelector('.m7-content');
+                contentSpan.innerText = state.mode7Values[i];
+
+                const canvas = document.getElementById(`m7-canvas-${i}`);
+                setupScratchCanvas(canvas, () => revealMode7Slot(i));
+            }
+        }
+
+        function revealMode7Slot(index) {
+            state.mode7Scratched[index] = true;
+            checkMode7Win();
+        }
+
+        function instantScratchAllMode7() {
+            for (let i = 0; i < 9; i++) {
+                const canvas = document.getElementById(`m7-canvas-${i}`);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const rect = canvas.getBoundingClientRect();
+                spawnScratchDust(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
+                state.mode7Scratched[i] = true;
+            }
+            playSound('scratch');
+            checkMode7Win();
+        }
+
+        function buyMode7Card() {
+            processPurchase(25, () => {
+                initMode7Card();
+            });
+        }
+
+        function checkMode7Win() {
+            if (state.mode7Scratched.filter(Boolean).length < 9) return;
+
+            const banner = document.getElementById('m7-result-banner');
+            banner.classList.remove('hidden');
+
+            let totalPrize = 0;
+
+            // Instant bonuses for 7s or Diamonds
+            state.mode7Values.forEach(val => {
+                if (val === '7️⃣') totalPrize += 50;
+                if (val === '💎') totalPrize += 200;
+            });
+
+            // Check Row/Column 3-in-a-row matches
+            const lines = [
+                [0,1,2], [3,4,5], [6,7,8], // Rows
+                [0,3,6], [1,4,7], [2,5,8]  // Cols
+            ];
+
+            lines.forEach(line => {
+                const [a, b, c] = line;
+                if (state.mode7Values[a] === state.mode7Values[b] && state.mode7Values[b] === state.mode7Values[c]) {
+                    totalPrize += 500; // Line match jackpot
+                }
+            });
+
+            if (totalPrize > 0) {
+                playSound('win');
+                state.balance += totalPrize;
+                state.winTotal += totalPrize;
+                updateUI();
+
+                banner.className = 'mt-4 text-center font-extrabold text-lg text-cyan-300 animate-bounce';
+                banner.innerText = `💎 XUẤT SẮC VIP! Bạn cào thắng tổng cộng $${totalPrize.toLocaleString()}!`;
+            } else {
+                banner.className = 'mt-4 text-center font-bold text-sm text-slate-400';
+                banner.innerText = 'Vé này chưa trúng thưởng. Đừng bỏ cuộc!';
+            }
+        }
+
+        function showBankruptcyModal() {
+            document.getElementById('bankruptcyModal').classList.remove('hidden');
+        }
+
+        function startBrickGame() {
+            document.getElementById('startBrickBtn').classList.add('hidden');
+            const canvas = document.getElementById('brickCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let paddleWidth = 70;
+            let paddleHeight = 10;
+            let paddleX = (canvas.width - paddleWidth) / 2;
+
+            let x = canvas.width / 2;
+            let y = canvas.height - 30;
+            let dx = 3;
+            let dy = -3;
+            let ballRadius = 6;
+
+            let rowCount = 3;
+            let colCount = 5;
+            let brickWidth = (canvas.width - 40) / colCount;
+            let brickHeight = 15;
+            let brickPadding = 6;
+            let offsetTop = 20;
+            let offsetLeft = 15;
+
+            let bricks = [];
+            for (let c = 0; c < colCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < rowCount; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
+                }
+            }
+
+            // Touch / Mouse Paddle Control
+            function mouseMoveHandler(e) {
+                let relativeX = e.clientX - canvas.getBoundingClientRect().left;
+                if (relativeX > 0 && relativeX < canvas.width) {
+                    paddleX = relativeX - paddleWidth / 2;
+                }
+            }
+            canvas.addEventListener('mousemove', mouseMoveHandler);
+            canvas.addEventListener('touchmove', (e) => {
+                let relativeX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+                if (relativeX > 0 && relativeX < canvas.width) {
+                    paddleX = relativeX - paddleWidth / 2;
+                }
+            });
+
+            function collisionDetection() {
+                for (let c = 0; c < colCount; c++) {
+                    for (let r = 0; r < rowCount; r++) {
+                        let b = bricks[c][r];
+                        if (b.status === 1) {
+                            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                                dy = -dy;
+                                b.status = 0;
+                                playSound('click');
+
+                                // Check remaining bricks
+                                let remaining = bricks.flat().filter(b => b.status === 1).length;
+                                if (remaining === 0) {
+                                    playSound('win');
+                                    alert('🎉 GIẢI CỨU THÀNH CÔNG! Bạn nhận được $50 vốn khởi nghiệp!');
+                                    state.balance = 50;
+                                    updateUI();
+                                    document.getElementById('bankruptcyModal').classList.add('hidden');
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Bricks
+                for (let c = 0; c < colCount; c++) {
+                    for (let r = 0; r < rowCount; r++) {
+                        if (bricks[c][r].status === 1) {
+                            let brickX = (c * (brickWidth + brickPadding)) + offsetLeft;
+                            let brickY = (r * (brickHeight + brickPadding)) + offsetTop;
+                            bricks[c][r].x = brickX;
+                            bricks[c][r].y = brickY;
+                            ctx.fillStyle = '#f59e0b';
+                            ctx.beginPath();
+                            ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+                            ctx.fill();
+                        }
+                    }
+                }
+
+                // Draw Ball
+                ctx.beginPath();
+                ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fill();
+
+                // Draw Paddle
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.roundRect(paddleX, canvas.height - paddleHeight - 5, paddleWidth, paddleHeight, 4);
+                ctx.fill();
+
+                collisionDetection();
+
+                if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
+                if (y + dy < ballRadius) dy = -dy;
+                else if (y + dy > canvas.height - ballRadius - 10) {
+                    if (x > paddleX && x < paddleX + paddleWidth) {
+                        dy = -dy;
+                    } else {
+                        // Reset ball on miss
+                        x = canvas.width / 2;
+                        y = canvas.height - 30;
+                        dx = 3;
+                        dy = -3;
+                    }
+                }
+
+                x += dx;
+                y += dy;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        window.onload = function() {
+            updateUI();
+        };
+    </script>
+</body>
+</html>
