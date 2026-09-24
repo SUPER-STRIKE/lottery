@@ -349,7 +349,7 @@ input[type="number"] {
                         </div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$100</strong></span>
+                        <span class="text-slate-400">Giá vé: <strong class="text-amber-400">$150</strong></span>
                         <span class="text-cyan-400 font-bold group-hover:translate-x-1 transition">Chơi Ngay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
                     </div>
                 </div>
@@ -786,7 +786,7 @@ input[type="number"] {
                                 <i class="fa-solid fa-bolt"></i> Cào Nhanh Lưới 3x3
                             </button>
                             <button id="m7-buy-btn" onclick="buyMode7Card()" class="flex-1 py-2.5 gold-button rounded-xl font-bold text-xs shadow-md">
-                                Mua Vé Mới VIP ($40)
+                                Mua Vé Mới VIP ($100)
                             </button>
                         </div>
                     </div>
@@ -1994,141 +1994,145 @@ function pick3Random() {
         }
 
         // ================= MODE 7: DIAMOND 7S VIP SCRATCH =================
-        const mode7Symbols = [
-            { symbol: '7️⃣', type: '7', prize: 50, weight: 15 },
-            { symbol: '💎', type: 'diamond', prize: 200, weight: 8 },
-            { symbol: '⭐', type: 'star', prize: 0, weight: 25 },
-            { symbol: '🔔', type: 'bell', prize: 0, weight: 26 },
-            { symbol: '🍋', type: 'lemon', prize: 0, weight: 26 }
-        ];
+       const mode7Symbols = [    
+    { symbol: '7️⃣', type: '7', prize: 50, weight: 4 },
+    { symbol: '💎', type: 'diamond', prize: 200, weight: 2 },
+    { symbol: '1', type: 'one', prize: 0, weight: 25 },
+    { symbol: '2', type: 'two', prize: 0, weight: 25 },
+    { symbol: '3', type: 'three', prize: 0, weight: 25 },
+    { symbol: '4', type: 'four', prize: 0, weight: 25 },
+    { symbol: '5', type: 'five', prize: 0, weight: 25 },
+    { symbol: '6', type: 'six', prize: 0, weight: 25 },
+    { symbol: '8', type: 'eight', prize: 0, weight: 25 },
+    { symbol: '9', type: 'nine', prize: 0, weight: 25 }
+];
 
-        function getRandomMode7Symbol() {
-            let rand = Math.random() * 100;
-            let sum = 0;
-            for (let item of mode7Symbols) {
-                sum += item.weight;
-                if (rand <= sum) return item;
-            }
-            return mode7Symbols[2];
+function getRandomMode7Symbol() {
+    let rand = Math.random() * 100;
+    let sum = 0;
+    for (let item of mode7Symbols) {
+        sum += item.weight;
+        if (rand <= sum) return item;
+    }
+    return mode7Symbols[2];
+}
+
+function initMode7Card() {
+    state.mode7Scratched = Array(9).fill(false);
+    state.mode7Processed = false;
+    document.getElementById('m7-result-banner').classList.add('hidden');
+
+    state.mode7Values = [];
+    for (let i = 0; i < 9; i++) {
+        state.mode7Values.push(getRandomMode7Symbol());
+    }
+
+    const gridContainer = document.getElementById('m7-grid-container');
+    gridContainer.innerHTML = '';
+
+    for (let i = 0; i < 9; i++) {
+        const slotDiv = document.createElement('div');
+        slotDiv.id = `m7-slot-${i}`;
+        slotDiv.className = 'relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex flex-col items-center justify-center border border-slate-800';
+
+        const contentSpan = document.createElement('span');
+        contentSpan.className = 'm7-content text-2xl font-extrabold select-none';
+        contentSpan.innerText = state.mode7Values[i].symbol;
+
+        const canvas = document.createElement('canvas');
+        canvas.id = `m7-canvas-${i}`;
+        canvas.className = 'scratch-canvas absolute inset-0 w-full h-full';
+
+        slotDiv.appendChild(contentSpan);
+        slotDiv.appendChild(canvas);
+        gridContainer.appendChild(slotDiv);
+
+        setupScratchCanvas(canvas, () => revealMode7Slot(i));
+    }
+}
+
+function revealMode7Slot(index) {
+    state.mode7Scratched[index] = true;
+    checkMode7Win();
+}
+
+function instantScratchAllMode7() {
+    if (state.mode7Processed) return;
+
+    for (let i = 0; i < 9; i++) {
+        const canvas = document.getElementById(`m7-canvas-${i}`);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const rect = canvas.getBoundingClientRect();
+            spawnScratchDust(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
         }
+        state.mode7Scratched[i] = true;
+    }
+    playSound('scratch');
+    checkMode7Win();
+}
 
-        function initMode7Card() {
-            state.mode7Scratched = Array(9).fill(false);
-            state.mode7Processed = false;
-            document.getElementById('m7-result-banner').classList.add('hidden');
+function buyMode7Card() {
+    processPurchase(100, () => {
+        initMode7Card();
+    });
+}
 
-            state.mode7Values = [];
-            for (let i = 0; i < 9; i++) {
-                state.mode7Values.push(getRandomMode7Symbol());
-            }
+function checkMode7Win() {
+    if (state.mode7Scratched.filter(Boolean).length < 9 || state.mode7Processed) return;
 
-            const gridContainer = document.getElementById('m7-grid-container');
-            gridContainer.innerHTML = '';
+    state.mode7Processed = true;
 
-            for (let i = 0; i < 9; i++) {
-                const slotDiv = document.createElement('div');
-                slotDiv.id = `m7-slot-${i}`;
-                slotDiv.className = 'relative aspect-square rounded-xl overflow-hidden bg-slate-950 flex flex-col items-center justify-center border border-slate-800';
+    const banner = document.getElementById('m7-result-banner');
+    banner.classList.remove('hidden');
 
-                const contentSpan = document.createElement('span');
-                contentSpan.className = 'm7-content text-2xl font-extrabold select-none';
-                contentSpan.innerText = state.mode7Values[i].symbol;
+    let totalWin = 0;
+    let detail = [];
 
-                const canvas = document.createElement('canvas');
-                canvas.id = `m7-canvas-${i}`;
-                canvas.className = 'scratch-canvas absolute inset-0 w-full h-full';
-
-                slotDiv.appendChild(contentSpan);
-                slotDiv.appendChild(canvas);
-                gridContainer.appendChild(slotDiv);
-
-                setupScratchCanvas(canvas, () => revealMode7Slot(i));
-            }
+    state.mode7Values.forEach(v => {
+        if (v.prize > 0) {
+            totalWin += v.prize;
         }
+    });
 
-        function revealMode7Slot(index) {
-            state.mode7Scratched[index] = true;
-            checkMode7Win();
+    if (totalWin > 0) {
+        detail.push(`Thưởng Biểu Tượng: +$${totalWin}`);
+    }
+
+    const winLines = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8]
+    ];
+
+    let lineJackpots = 0;
+    winLines.forEach(line => {
+        let s1 = state.mode7Values[line[0]].type;
+        let s2 = state.mode7Values[line[1]].type;
+        let s3 = state.mode7Values[line[2]].type;
+
+        if (s1 === s2 && s2 === s3) {
+            lineJackpots += 500;
         }
+    });
 
-        function instantScratchAllMode7() {
-            if (state.mode7Processed) return;
+    if (lineJackpots > 0) {
+        totalWin += lineJackpots;
+        detail.push(`Jackpot Hàng/Cột: +$${lineJackpots}`);
+    }
 
-            for (let i = 0; i < 9; i++) {
-                const canvas = document.getElementById(`m7-canvas-${i}`);
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    const rect = canvas.getBoundingClientRect();
-                    spawnScratchDust(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
-                }
-                state.mode7Scratched[i] = true;
-            }
-            playSound('scratch');
-            checkMode7Win();
-        }
-
-        function buyMode7Card() {
-            processPurchase(100, () => {
-                initMode7Card();
-            });
-        }
-
-        function checkMode7Win() {
-            if (state.mode7Scratched.filter(Boolean).length < 9 || state.mode7Processed) return;
-
-            state.mode7Processed = true;
-
-            const banner = document.getElementById('m7-result-banner');
-            banner.classList.remove('hidden');
-
-            let totalWin = 0;
-            let detail = [];
-
-            state.mode7Values.forEach(v => {
-                if (v.prize > 0) {
-                    totalWin += v.prize;
-                }
-            });
-
-            if (totalWin > 0) {
-                detail.push(`Thưởng Biểu Tượng: +$${totalWin}`);
-            }
-
-            const winLines = [
-                [0,1,2], [3,4,5], [6,7,8],
-                [0,3,6], [1,4,7], [2,5,8]
-            ];
-
-            let lineJackpots = 0;
-            winLines.forEach(line => {
-                let s1 = state.mode7Values[line[0]].type;
-                let s2 = state.mode7Values[line[1]].type;
-                let s3 = state.mode7Values[line[2]].type;
-
-                if (s1 === s2 && s2 === s3) {
-                    lineJackpots += 500;
-                }
-            });
-
-            if (lineJackpots > 0) {
-                totalWin += lineJackpots;
-                detail.push(`Jackpot Hàng/Cột: +$${lineJackpots}`);
-            }
-
-            if (totalWin > 0) {
-                playSound('win');
-                state.balance += totalWin;
-                state.winTotal += totalWin;
-                updateUI();
-                banner.className = 'mt-4 text-center font-bold text-lg text-amber-400 animate-bounce';
-                banner.innerText = `🎉 THẮNG LỚN! Tổng nhận $${totalWin.toLocaleString()} (${detail.join(' | ')})!`;
-            } else {
-                banner.className = 'mt-4 text-center font-semibold text-slate-400';
-                banner.innerText = 'Rất tiếc! Chưa xuất hiện số 7, Kim Cương hay Hàng Thắng.';
-            }
-        }
-
+    if (totalWin > 0) {
+        playSound('win');
+        state.balance += totalWin;
+        state.winTotal += totalWin;
+        updateUI();
+        banner.className = 'mt-4 text-center font-bold text-lg text-amber-400 animate-bounce';
+        banner.innerText = `🎉 THẮNG LỚN! Tổng nhận $${totalWin.toLocaleString()} (${detail.join(' | ')})!`;
+    } else {
+        banner.className = 'mt-4 text-center font-semibold text-slate-400';
+        banner.innerText = 'Rất tiếc! Chưa xuất hiện số 7, Kim Cương hay Hàng Thắng.';
+    }
+}
         // ================= MODE ROULETTE =================
         const rouletteNumbers = [
             0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
