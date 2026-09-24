@@ -1060,6 +1060,7 @@ input[type="number"] {
         function updateUI() {
             document.getElementById('balanceDisplay').innerText = '$' + state.balance.toLocaleString();
             document.getElementById('winTotalDisplay').innerText = '$' + state.winTotal.toLocaleString();
+			saveGameState();
         }
 
         function showView(viewName) {
@@ -2283,67 +2284,27 @@ input[type="number"] {
 
         // On Load Init
         window.onload = () => {
+		loadGameState();
             updateUI();
             showView('shop');
         };
-		// Load state from browser's LocalStorage if available
-function loadSavedState() {
-    const saved = localStorage.getItem('kokonut_lotto_state');
-    const defaultState = {
-        balance: 500,
-        winTotal: 0,
-        incomePerSecond: 0,
-        audioEnabled: true,
-        currentView: 'shop',
-        mode1Selected: [],
-        mode2WhiteSelected: [],
-        mode2RedSelected: null,
-        mode4MainSelected: [],
-        mode4GrandSelected: null,
-        mode5Type: 'straight',
-        mode6Values: [],
-        mode6Scratched: [false, false, false, false, false, false],
-        mode6Processed: false,
-        mode7Values: [],
-        mode7Scratched: Array(9).fill(false),
-        mode7Processed: false,
-        rouletteBetType: 'red',
-        rouletteIsSpinning: false,
+		// Hàm lưu tiền vào bộ nhớ trình duyệt
+function saveGameState() {
+    localStorage.setItem('roulette_balance', state.balance);
+    localStorage.setItem('roulette_winTotal', state.winTotal);
+}
 
-        dodCurrentPot: 0,
-        dodBulletChamber: -1,
-        dodCurrentChamber: 0,
-        dodChambersChecked: 0,
-        dodActive: false
-    };
+// Hàm tải tiền từ bộ nhớ trình duyệt khi mở lại trang
+function loadGameState() {
+    const savedBalance = localStorage.getItem('roulette_balance');
+    const savedWinTotal = localStorage.getItem('roulette_winTotal');
 
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            return { ...defaultState, ...parsed };
-        } catch (e) {
-            console.error('Failed to parse state:', e);
-        }
+    if (savedBalance !== null) {
+        state.balance = parseInt(savedBalance, 10);
     }
-    return defaultState;
-}
-
-let state = loadSavedState();
-
-// Save state back to browser's LocalStorage
-function saveState() {
-    const stateToSave = {
-        balance: state.balance,
-        winTotal: state.winTotal,
-        incomePerSecond: state.incomePerSecond,
-        audioEnabled: state.audioEnabled
-    };
-    localStorage.setItem('kokonut_lotto_state', JSON.stringify(stateToSave));
-}
-function updateUI() {
-    document.getElementById('balanceDisplay').innerText = '$' + state.balance.toLocaleString();
-    document.getElementById('winTotalDisplay').innerText = '$' + state.winTotal.toLocaleString();
-    saveState(); // <--- Add this line
+    if (savedWinTotal !== null) {
+        state.winTotal = parseInt(savedWinTotal, 10);
+    }
 }
     </script>
 </body>
